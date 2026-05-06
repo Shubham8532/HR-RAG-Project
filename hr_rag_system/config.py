@@ -1,32 +1,36 @@
 from pathlib import Path
 
-from dotenv import load_dotenv
-from loguru import logger
+# BASE PROJECT DIRECTORY
 
-# Load environment variables from .env file if it exists
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Paths
-PROJ_ROOT = Path(__file__).resolve().parents[1]
-logger.info(f"PROJ_ROOT path is: {PROJ_ROOT}")
 
-DATA_DIR = PROJ_ROOT / "data"
+
+# DATA DIRECTORIES
+
+DATA_DIR = BASE_DIR / "data"
+
 RAW_DATA_DIR = DATA_DIR / "raw"
-INTERIM_DATA_DIR = DATA_DIR / "interim"
 PROCESSED_DATA_DIR = DATA_DIR / "processed"
-EXTERNAL_DATA_DIR = DATA_DIR / "external"
 
-MODELS_DIR = PROJ_ROOT / "models"
 
-REPORTS_DIR = PROJ_ROOT / "reports"
-FIGURES_DIR = REPORTS_DIR / "figures"
 
-# If tqdm is installed, configure loguru with tqdm.write
-# https://github.com/Delgan/loguru/issues/135
-try:
-    from tqdm import tqdm
+# FILE PATHS
 
-    logger.remove(0)
-    logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
-except ModuleNotFoundError:
-    pass
+RAW_CORPUS_PATH = RAW_DATA_DIR / "raw_corpus.json"
+
+STRUCTURED_CORPUS_PATH = (
+    PROCESSED_DATA_DIR / "structured_corpus.json"
+)
+
+CHUNKED_CORPUS_PATH = (
+    PROCESSED_DATA_DIR / "chunked_corpus.json"
+)
+
+EMBEDDINGS_PATH = (
+    PROCESSED_DATA_DIR / "embeddings.npy"
+)
+
+FAISS_INDEX_PATH = (
+    PROCESSED_DATA_DIR / "faiss_index.bin"
+)

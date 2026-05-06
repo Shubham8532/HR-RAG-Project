@@ -1,5 +1,12 @@
 # Data
-/data/
+# Ignore large data files only
+data/raw/*.json
+data/processed/*.json
+data/processed/*.npy
+data/processed/*.bin
+
+# Keep DVC metadata files
+!data/**/*.dvc
 
 # Mac OS-specific storage files
 .DS_Store
