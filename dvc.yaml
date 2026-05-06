@@ -1,0 +1,59 @@
+stages:
+
+  dataset:
+
+    cmd: python -m hr_rag_system.dataset
+
+    deps:
+      - hr_rag_system/dataset.py
+
+    outs:
+      - data/raw/raw_corpus.json
+
+
+  preprocessing:
+
+    cmd: python -m hr_rag_system.preprocessing
+
+    deps:
+      - hr_rag_system/preprocessing.py
+      - data/raw/raw_corpus.json
+
+    outs:
+      - data/processed/structured_corpus.json
+
+
+  chunking:
+
+    cmd: python -m hr_rag_system.chunking
+
+    deps:
+      - hr_rag_system/chunking.py
+      - data/processed/structured_corpus.json
+
+    outs:
+      - data/processed/chunked_corpus.json
+
+
+  embeddings:
+
+    cmd: python -m hr_rag_system.embeddings
+
+    deps:
+      - hr_rag_system/embeddings.py
+      - data/processed/chunked_corpus.json
+
+    outs:
+      - data/processed/embeddings.npy
+
+
+  vectordb:
+
+    cmd: python -m hr_rag_system.vectordb
+
+    deps:
+      - hr_rag_system/vectordb.py
+      - data/processed/embeddings.npy
+
+    outs:
+      - data/processed/faiss_index.bin
