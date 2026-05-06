@@ -36,3 +36,13 @@ FAISS_INDEX_PATH = (
 # Chunking parameters
 CHUNK_SIZE = 120
 OVERLAP = 30
+
+# Embedding model name and path
+EMBEDDINGS_PATH = (
+    PROCESSED_DATA_DIR / "embeddings.npy"
+)
+
+# FAISS index path
+FAISS_INDEX_PATH = (
+    PROCESSED_DATA_DIR / "faiss_index.bin"
+)
