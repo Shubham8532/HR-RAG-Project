@@ -18,6 +18,7 @@ import os
 
 from hr_rag_system.config import RAW_CORPUS_PATH
 from hr_rag_system.config import (MEDICAL_TOPICS_PATH)
+from hr_rag_system.config import (WIKITEXT_LIMIT, SCIENCE_LIMIT, MEDICAL_LIMIT, LAVITA_LIMIT, MEDICAL_QA_LIMIT)
 
 # =========================================================
 # LOAD WIKITEXT DATASET
