@@ -72,6 +72,7 @@ def build_chunked_corpus(structured_corpus):
     chunked_corpus = []
 
     chunk_id = 0
+    seen_chunks = set()     # for overlaping semantic duplicate removal
 
     for item in structured_corpus:
 
@@ -79,7 +80,14 @@ def build_chunked_corpus(structured_corpus):
 
         for chunk in chunks:
 
-            if len(chunk) > 50:
+            normalized_chunk = chunk.lower().strip()
+
+            if (
+                len(chunk.split()) > 10
+                and normalized_chunk not in seen_chunks
+                ):
+
+                seen_chunks.add(normalized_chunk)
 
                 chunked_corpus.append({
 

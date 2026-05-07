@@ -94,7 +94,7 @@ def build_structured_corpus(raw_corpus):
         text = clean_text(item["text"])
 
         # Skip tiny/noisy text
-        if len(text) > 50:
+        if len(text.split()) > 10:
 
             structured_corpus.append({
 

@@ -9,6 +9,12 @@
 from datasets import load_dataset
 import json
 from loguru import logger
+import wikipedia
+import time
+import random
+import json
+import re
+import os
 
 from hr_rag_system.config import RAW_CORPUS_PATH
 from hr_rag_system.config import (MEDICAL_TOPICS_PATH)
