@@ -4,6 +4,7 @@
 
 import json
 import numpy as np
+import torch
 
 from loguru import logger
 
@@ -65,8 +66,18 @@ def load_embedding_model():
 
     logger.info("Loading embedding model...")
 
+    device = (
+    "cuda"
+    if torch.cuda.is_available()
+    else "cpu"
+    )
+
+    logger.info(
+        f"Using device: {device}"
+    )
     model = SentenceTransformer(
-        "all-MiniLM-L6-v2"
+        "all-MiniLM-L6-v2",
+        device=device
     )
 
     logger.success("Embedding model loaded.")
