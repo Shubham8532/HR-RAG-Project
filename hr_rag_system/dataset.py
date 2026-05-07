@@ -11,6 +11,7 @@ import json
 from loguru import logger
 
 from hr_rag_system.config import RAW_CORPUS_PATH
+from hr_rag_system.config import (MEDICAL_TOPICS_PATH)
 
 # =========================================================
 # LOAD WIKITEXT DATASET
@@ -131,6 +132,182 @@ def load_medical(limit=3000):
 
     return data
 
+
+# =========================================================
+# LOAD LAVITA MEDICAL QA DATASET
+# =========================================================
+
+def load_lavita_medical(limit=3000):
+    """
+    Load instruction-style medical QA corpus.
+
+    Dataset:
+    - lavita/medical-qa-datasets
+
+    Returns:
+        List[dict]
+    """
+
+    logger.info(
+        "Loading Lavita medical QA dataset..."
+    )
+
+    dataset = load_dataset(
+        "lavita/medical-qa-datasets",
+        "all-processed",
+        split=f"train[:{limit}]"
+    )
+
+    data = []
+
+    for i, item in enumerate(dataset):
+
+        text = (
+            item["instruction"] + " " +
+            item["input"] + " " +
+            item["output"]
+        )
+
+        data.append({
+
+            "id": f"lavita_{i}",
+
+            "text": text,
+
+            "domain": "medical_instruction_qa"
+        })
+
+    logger.success(
+        f"Lavita dataset loaded: {len(data)} documents"
+    )
+
+    return data
+
+# =========================================================
+# LOAD MEDICAL QA DATASET
+# =========================================================
+
+def load_medical_qa(limit=3000):
+    """
+    Load educational medical QA corpus.
+
+    Dataset:
+    - Starlord1010/Medical-QA-dataset
+
+    Returns:
+        List[dict]
+    """
+
+    logger.info(
+        "Loading medical QA dataset..."
+    )
+
+    dataset = load_dataset(
+        "Starlord1010/Medical-QA-dataset",
+        split=f"train[:{limit}]"
+    )
+
+    data = []
+
+    for i, item in enumerate(dataset):
+
+        text = (
+            item["question"] + " " +
+            item["response"]
+        )
+
+        data.append({
+
+            "id": f"medqa_{i}",
+
+            "text": text,
+
+            "domain": "medical_qa"
+        })
+
+    logger.success(
+        f"Medical QA dataset loaded: {len(data)} documents"
+    )
+
+    return data
+
+# =========================================================
+# LOAD MEDICAL WIKIPEDIA ARTICLES
+# =========================================================
+
+def load_medical_wikipedia():
+    """
+    Load medical Wikipedia articles
+    using topics from text file.
+
+    Returns:
+        List[dict]
+    """
+
+    logger.info(
+        "Loading medical Wikipedia articles..."
+    )
+
+    with open(
+        MEDICAL_TOPICS_PATH,
+        "r",
+        encoding="utf-8"
+    ) as f:
+
+        medical_topics = [
+
+            line.strip()
+
+            for line in f
+
+            if line.strip()
+        ]
+
+    data = []
+
+    for i, topic in enumerate(medical_topics):
+
+        try:
+
+            logger.info(
+                f"Loading topic: {topic}"
+            )
+
+            page = wikipedia.page(
+                topic,
+                auto_suggest=False
+            )
+
+            data.append({
+
+                "id": f"medwiki_{i}",
+
+                "text": page.content[:5000],
+
+                "domain": "medical_wikipedia"
+            })
+
+            time.sleep(
+                random.uniform(3, 4)
+            )
+
+        except Exception as e:
+
+            logger.warning(
+                f"Skipped topic: {topic}"
+            )
+
+            logger.warning(str(e))
+
+            continue
+
+    logger.success(
+        f"Medical Wikipedia loaded: {len(data)} documents"
+    )
+
+    return data
+             
+
 # =========================================================
 # BUILD RAW CORPUS
 # =========================================================
@@ -149,6 +326,9 @@ def build_raw_corpus():
     corpus.extend(load_wikitext())
     corpus.extend(load_science())
     corpus.extend(load_medical())
+    corpus.extend(load_medical_qa())
+    corpus.extend(load_lavita_medical())
+    corpus.extend(load_medical_wikipedia())
     logger.success(f"Total raw documents: {len(corpus)}")
 
     return corpus

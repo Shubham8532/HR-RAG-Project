@@ -1,0 +1,163 @@
+Diabetes
+Hypertension
+Asthma
+Heart disease
+Coronary artery disease
+Stroke
+Cancer
+Lung cancer
+Breast cancer
+Tuberculosis
+Pneumonia
+COVID-19
+Influenza
+Migraine
+Epilepsy
+Parkinson's disease
+Alzheimer's disease
+Obesity
+Anxiety disorder
+Depression
+Bipolar disorder
+Schizophrenia
+Anemia
+Arthritis
+Osteoporosis
+Kidney disease
+Liver disease
+Cirrhosis
+Hepatitis
+Dengue fever
+Malaria
+Typhoid fever
+Cholera
+HIV/AIDS
+Leukemia
+Lymphoma
+Psoriasis
+Eczema
+Acne
+Hypothyroidism
+Hyperthyroidism
+Chest pain
+Fever
+Cough
+Headache
+Fatigue
+Shortness of breath
+Vomiting
+Nausea
+Diarrhea
+Constipation
+Back pain
+Abdominal pain
+Dizziness
+Blurred vision
+Weight loss
+Weight gain
+Blood pressure
+Insulin
+Blood sugar
+Cholesterol
+Immune system
+Inflammation
+Metabolism
+Human brain
+Digestive system
+Respiratory system
+Cardiovascular system
+Nervous system
+Chemotherapy
+Radiation therapy
+Dialysis
+Insulin therapy
+Antibiotics
+Vaccination
+Pain management
+Physical therapy
+Sleep apnea
+Autism
+Attention deficit hyperactivity disorder
+Crohn's disease
+Ulcerative colitis
+Gastritis
+Peptic ulcer disease
+Appendicitis
+Pancreatitis
+Gallstones
+Atherosclerosis
+Arrhythmia
+Heart failure
+Deep vein thrombosis
+Pulmonary embolism
+Sepsis
+Meningitis
+Encephalitis
+Polio
+Rabies
+Chickenpox
+Measles
+Mumps
+Rubella
+Ebola
+Zika virus
+Lyme disease
+Fibromyalgia
+Gout
+Multiple sclerosis
+Amyotrophic lateral sclerosis
+Celiac disease
+Irritable bowel syndrome
+Hemophilia
+Sickle cell disease
+Glaucoma
+Cataract
+Otitis media
+Sinusitis
+Tonsillitis
+Bronchitis
+Pleurisy
+Vertigo
+Insomnia
+Panic attack
+Post-traumatic stress disorder
+Eating disorder
+Substance abuse
+Nicotine dependence
+Alcoholism
+Concussion
+Fracture
+Sprain
+Burn
+Dehydration
+Heat stroke
+Hypothermia
+Poisoning
+Food poisoning
+Allergy
+Anaphylaxis
+Autoimmune disease
+Lupus
+Sjogren syndrome
+Rheumatoid arthritis
+Osteoarthritis
+Skin cancer
+Melanoma
+Prostate cancer
+Cervical cancer
+Endometriosis
+Polycystic ovary syndrome
+Infertility
+Pregnancy
+Menopause
+Miscarriage
+Autism spectrum disorder
+Down syndrome
+Genetics
+DNA
+Nutrition
+Vitamin deficiency
+Iron deficiency
+Protein deficiency
+Electrolyte imbalance
+Dehydration

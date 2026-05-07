@@ -46,3 +46,10 @@ EMBEDDINGS_PATH = (
 FAISS_INDEX_PATH = (
     PROCESSED_DATA_DIR / "faiss_index.bin"
 )
+
+# Medical topics file path
+TOPICS_DIR = DATA_DIR / "topics"
+
+MEDICAL_TOPICS_PATH = (
+    TOPICS_DIR / "medical_topics.txt"
+)
