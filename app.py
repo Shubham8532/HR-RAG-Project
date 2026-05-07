@@ -1,18 +1,28 @@
-from flask import Flask
-from flask import render_template
-from flask import request
-
-from hr_rag_system.retrieval import (
-    load_chunked_corpus,
-    load_faiss_index,
-    load_embedding_model,
-    retrieve
+from flask import (
+    Flask,
+    render_template,
+    request
 )
 
+from hr_rag_system.retrieval import (
 
-# =========================================================
-# LOAD RAG COMPONENTS
-# =========================================================
+    load_chunked_corpus,
+
+    load_faiss_index,
+
+    load_embedding_model,
+
+    load_reranker
+)
+
+from hr_rag_system.generation import (
+    load_llm,
+    generate_answer
+)
+
+# =====================================================
+# LOAD MODELS + ARTIFACTS ONCE
+# =====================================================
 
 print("Loading RAG system...")
 
@@ -20,53 +30,64 @@ chunked_corpus = load_chunked_corpus()
 
 index = load_faiss_index()
 
-model = load_embedding_model()
+embedding_model = load_embedding_model()
 
-print("RAG system loaded.")
+reranker = load_reranker()
 
+generator, tokenizer = load_llm()
 
-# =========================================================
-# CREATE FLASK APP
-# =========================================================
+print("RAG system ready.")
+
+# =====================================================
+# FLASK APP
+# =====================================================
 
 app = Flask(__name__)
 
-
-# =========================================================
+# =====================================================
 # HOME PAGE
-# =========================================================
+# =====================================================
 
 @app.route("/", methods=["GET", "POST"])
+
 def home():
 
-    results = []
-
-    query = ""
+    result = None
 
     if request.method == "POST":
 
         query = request.form["query"]
 
-        results = retrieve(
+        result = generate_answer(
+
             query=query,
-            model=model,
+
+            embedding_model=embedding_model,
+
+            reranker=reranker,
+
             index=index,
+
             chunked_corpus=chunked_corpus,
-            top_k=5,
-            threshold=1.3
+
+            generator=generator,
+
+            tokenizer=tokenizer
         )
 
     return render_template(
         "index.html",
-        query=query,
-        results=results
+        result=result
     )
 
-
-# =========================================================
+# =====================================================
 # RUN APP
-# =========================================================
+# =====================================================
 
 if __name__ == "__main__":
 
-    app.run(debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=True
+    )

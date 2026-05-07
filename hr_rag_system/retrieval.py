@@ -5,7 +5,8 @@ import numpy as np
 from loguru import logger
 
 from sentence_transformers import (
-    SentenceTransformer
+    SentenceTransformer,
+    CrossEncoder
 )
 
 from hr_rag_system.config import (
@@ -19,7 +20,9 @@ def load_chunked_corpus():
     Load chunked corpus metadata.
     """
 
-    logger.info("Loading chunked corpus...")
+    logger.info(
+        "Loading chunked corpus..."
+    )
 
     with open(
         CHUNKED_CORPUS_PATH,
@@ -30,7 +33,8 @@ def load_chunked_corpus():
         chunked_corpus = json.load(f)
 
     logger.success(
-        f"Loaded chunks: {len(chunked_corpus)}"
+        f"Loaded chunks: "
+        f"{len(chunked_corpus)}"
     )
 
     return chunked_corpus
@@ -41,7 +45,9 @@ def load_faiss_index():
     Load FAISS vector database.
     """
 
-    logger.info("Loading FAISS index...")
+    logger.info(
+        "Loading FAISS index..."
+    )
 
     index = faiss.read_index(
         str(FAISS_INDEX_PATH)
@@ -60,7 +66,9 @@ def load_embedding_model():
     Load embedding model.
     """
 
-    logger.info("Loading embedding model...")
+    logger.info(
+        "Loading embedding model..."
+    )
 
     model = SentenceTransformer(
         "all-MiniLM-L6-v2"
@@ -73,113 +81,93 @@ def load_embedding_model():
     return model
 
 
+def load_reranker():
+    """
+    Load CrossEncoder reranker.
+    """
+
+    logger.info(
+        "Loading reranker..."
+    )
+
+    reranker = CrossEncoder(
+        "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    )
+
+    logger.success(
+        "Reranker loaded."
+    )
+
+    return reranker
+
+
 def retrieve(
     query,
-    model,
+    embedding_model,
+    reranker,
     index,
     chunked_corpus,
-    top_k=5,
-    threshold=1.3
+    top_k=3
 ):
     """
-    Retrieve relevant documents.
+    Retrieve and rerank documents.
     """
 
     logger.info(
         f"Searching query: {query}"
     )
 
-    # Query -> embedding
-    query_embedding = model.encode(
+    query_embedding = embedding_model.encode(
         [query],
         convert_to_numpy=True
     )
 
-    # FAISS search
     distances, indices = index.search(
         query_embedding,
-        top_k
+        20
     )
 
-    print("\nDistances:", distances)
+    logger.info(
+        f"FAISS distances: {distances}"
+    )
 
-    results = []
+    candidates = []
 
-    for dist, idx in zip(
-        distances[0],
-        indices[0]
+    for idx in indices[0]:
+
+        candidates.append(
+            chunked_corpus[idx]
+        )
+
+    pairs = []
+
+    for candidate in candidates:
+
+        pairs.append([
+            query,
+            candidate["text"]
+        ])
+
+    scores = reranker.predict(pairs)
+
+    reranked_results = []
+
+    for score, candidate in zip(
+        scores,
+        candidates
     ):
 
-        if dist < threshold:
+        reranked_results.append({
 
-            results.append({
+            "score": float(score),
 
-                "id":
-                chunked_corpus[idx]["id"],
+            "text": candidate["text"]
+        })
 
-                "source_id":
-                chunked_corpus[idx]["source_id"],
-
-                "domain":
-                chunked_corpus[idx]["domain"],
-
-                "distance":
-                float(dist),
-
-                "text":
-                chunked_corpus[idx]["text"]
-            })
-
-    # No relevant match
-    if len(results) == 0:
-
-        return [{
-            "text":
-            "Not enough relevant information found.",
-
-            "domain":
-            None
-        }]
-
-    return results
-
-
-def main():
-
-    chunked_corpus = load_chunked_corpus()
-
-    index = load_faiss_index()
-
-    model = load_embedding_model()
-
-    query = (
-        "blood glucose levels in diabetes"
+    reranked_results = sorted(
+        reranked_results,
+        key=lambda x: x["score"],
+        reverse=True
     )
 
-    results = retrieve(
-        query=query,
-        model=model,
-        index=index,
-        chunked_corpus=chunked_corpus
-    )
-
-    for r in results:
-
-        print("\n====================")
-
-        print("ID:", r.get("id"))
-
-        print("Source:", r.get("source_id"))
-
-        print("Domain:", r.get("domain"))
-
-        print("Distance:", r.get("distance"))
-
-        print("\nRetrieved Text:\n")
-
-        print(r["text"][:500])
-
-
-if __name__ == "__main__":
-
-    main()
+    return reranked_results[:top_k]
