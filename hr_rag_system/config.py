@@ -37,6 +37,13 @@ FAISS_INDEX_PATH = (
 CHUNK_SIZE = 120
 OVERLAP = 30
 
+# Dataset limits for testing
+WIKITEXT_LIMIT = 5000
+SCIENCE_LIMIT = 3000
+MEDICAL_LIMIT = 3000
+LAVITA_LIMIT = 3000
+MEDICAL_QA_LIMIT = 3000
+
 # Embedding model name and path
 EMBEDDINGS_PATH = (
     PROCESSED_DATA_DIR / "embeddings.npy"

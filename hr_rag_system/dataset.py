@@ -23,7 +23,7 @@ from hr_rag_system.config import (MEDICAL_TOPICS_PATH)
 # LOAD WIKITEXT DATASET
 # =========================================================
 
-def load_wikitext(limit=5000):
+def load_wikitext(limit=WIKITEXT_LIMIT):
     """
     Load history/general knowledge corpus.
     Dataset:
@@ -61,7 +61,7 @@ def load_wikitext(limit=5000):
 # LOAD SCIENCE DATASET
 # =========================================================
 
-def load_science(limit=3000):
+def load_science(limit=SCIENCE_LIMIT):
     """
     Load scientific/news dataset.
     Dataset:
@@ -98,7 +98,7 @@ def load_science(limit=3000):
 # LOAD MEDICAL DATASET
 # =========================================================
 
-def load_medical(limit=3000):
+def load_medical(limit=MEDICAL_LIMIT):
     """
     Load biomedical research dataset.
     Dataset:
@@ -143,7 +143,7 @@ def load_medical(limit=3000):
 # LOAD LAVITA MEDICAL QA DATASET
 # =========================================================
 
-def load_lavita_medical(limit=3000):
+def load_lavita_medical(limit=LAVITA_LIMIT):
     """
     Load instruction-style medical QA corpus.
 
@@ -193,7 +193,7 @@ def load_lavita_medical(limit=3000):
 # LOAD MEDICAL QA DATASET
 # =========================================================
 
-def load_medical_qa(limit=3000):
+def load_medical_qa(limit=MEDICAL_QA_LIMIT):
     """
     Load educational medical QA corpus.
 

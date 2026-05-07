@@ -1,5 +1,0 @@
-outs:
-- md5: 689874d0d4ed52ef37b5a0f075d8925d
-  size: 5133674
-  hash: md5
-  path: chunked_corpus.json
