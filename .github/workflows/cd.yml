@@ -28,8 +28,11 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       # Login to Azure Container Registry
-      - name: Azure Container Registry Login
-        run: az acr login --name hrrag
+      - name: Login to ACR
+        run: |
+          docker login hrrag.azurecr.io \
+            -u ${{ secrets.ACR_USERNAME }} \
+            -p ${{ secrets.ACR_PASSWORD }}
 
       # Build Docker Image
       - name: Build Docker image
