@@ -1,0 +1,98 @@
+schema: '2.0'
+stages:
+  dataset:
+    cmd: python -m hr_rag_system.dataset
+    deps:
+    - path: hr_rag_system/config.py
+      hash: md5
+      md5: 15fc12c9b312122d0c5b6f3249673028
+      size: 1143
+    - path: hr_rag_system/dataset.py
+      hash: md5
+      md5: 7e30340a266286c4addb2ee1a4c02e2c
+      size: 7836
+    outs:
+    - path: data/raw/raw_corpus.json
+      hash: md5
+      md5: 6f5c1e3d0fcdfa6c1c529475bb47691e
+      size: 13259694
+  preprocessing:
+    cmd: python -m hr_rag_system.preprocessing
+    deps:
+    - path: data/raw/raw_corpus.json
+      hash: md5
+      md5: 6f5c1e3d0fcdfa6c1c529475bb47691e
+      size: 13259694
+    - path: hr_rag_system/config.py
+      hash: md5
+      md5: 15fc12c9b312122d0c5b6f3249673028
+      size: 1143
+    - path: hr_rag_system/preprocessing.py
+      hash: md5
+      md5: 377dfcd3a62fa2d394bdc7ebccc13f2b
+      size: 3216
+    outs:
+    - path: data/processed/structured_corpus.json
+      hash: md5
+      md5: e797861d12ce569a5d34434381fd4b39
+      size: 12849085
+  chunking:
+    cmd: python -m hr_rag_system.chunking
+    deps:
+    - path: data/processed/structured_corpus.json
+      hash: md5
+      md5: e797861d12ce569a5d34434381fd4b39
+      size: 12849085
+    - path: hr_rag_system/chunking.py
+      hash: md5
+      md5: 9e5142eaeee725018bb2697931f56c6d
+      size: 2730
+    - path: hr_rag_system/config.py
+      hash: md5
+      md5: 15fc12c9b312122d0c5b6f3249673028
+      size: 1143
+    outs:
+    - path: data/processed/chunked_corpus.json
+      hash: md5
+      md5: 3f25b88dd0d327c50634ad37488b4741
+      size: 17360240
+  embeddings:
+    cmd: python -m hr_rag_system.embeddings
+    deps:
+    - path: data/processed/chunked_corpus.json
+      hash: md5
+      md5: 3f25b88dd0d327c50634ad37488b4741
+      size: 17360240
+    - path: hr_rag_system/config.py
+      hash: md5
+      md5: 15fc12c9b312122d0c5b6f3249673028
+      size: 1143
+    - path: hr_rag_system/embeddings.py
+      hash: md5
+      md5: 8789d602e184ec19226f1f961edbc0d5
+      size: 2407
+    outs:
+    - path: data/processed/embeddings.npy
+      hash: md5
+      md5: 2823dd2b999c84d0657fde81770551be
+      size: 39447680
+  vectordb:
+    cmd: python -m hr_rag_system.vectordb
+    deps:
+    - path: data/processed/embeddings.npy
+      hash: md5
+      md5: 2823dd2b999c84d0657fde81770551be
+      size: 39447680
+    - path: hr_rag_system/config.py
+      hash: md5
+      md5: 15fc12c9b312122d0c5b6f3249673028
+      size: 1143
+    - path: hr_rag_system/vectordb.py
+      hash: md5
+      md5: 3ba628bf4a093e45fdbb8bcf020c5186
+      size: 1328
+    outs:
+    - path: data/processed/faiss_index.bin
+      hash: md5
+      md5: 8b09db2a67416656822c4e82588bdfe3
+      size: 39447597

@@ -2,81 +2,196 @@
 <html lang="en">
 
 <head>
-
-  <meta charset="UTF-8">
-
-  <title>HR-RAG System</title>
-
-  <style>
-    body {
-      font-family: Arial;
-      margin: 40px;
-      background: #f4f4f4;
-    }
-
-    h1 {
-      color: #333;
-    }
-
-    form {
-      margin-bottom: 30px;
-    }
-
-    input[type="text"] {
-      width: 70%;
-      padding: 10px;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-    }
-
-    .result {
-      background: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 10px;
-    }
-  </style>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Medical RAG Assistant — AI-powered answers grounded in source documents." />
+  <title>Medical RAG Assistant</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 
 <body>
 
-  <h1>Multi-Domain RAG System</h1>
+  <!-- ==================== HEADER ==================== -->
+  <header class="header">
+    <div class="container">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">⚕</span>
+          <div>
+            <div class="logo-title">Medical RAG Assistant</div>
+            <div class="logo-sub">Hallucination-Resistant RAG Assistant</div>
+          </div>
+        </div>
+        <div class="badge">
+          <span class="dot"></span> Online
+        </div>
+      </div>
+    </div>
+  </header>
 
-  <form method="POST">
+  <!-- ==================== MAIN ==================== -->
+  <main class="main">
+    <div class="container">
 
-    <input type="text" name="query" placeholder="Enter your query..." value="{{ query }}" required>
+      <!-- Search -->
+      <section class="card" id="search-section">
+        <div class="card-label">Ask a Question</div>
 
-    <button type="submit">
-      Search
-    </button>
+        <form method="POST" id="query-form" autocomplete="off">
+          <div class="input-row">
+            <input id="query-input" class="input" type="text" name="query"
+              placeholder="e.g. What are the symptoms of diabetes?" value="{{ request.form.get('query', '') }}"
+              required />
+            <button class="btn" type="submit" id="submit-btn">Ask</button>
+          </div>
 
-  </form>
+          <div class="chips">
+            <span>Try:</span>
+            <span class="chip" onclick="fillQuery(this)">Symptoms of diabetes</span>
+            <span class="chip" onclick="fillQuery(this)">Hypertension treatment</span>
+            <span class="chip" onclick="fillQuery(this)">COVID-19 symptoms</span>
+          </div>
+        </form>
+      </section>
 
-  {% for r in results %}
+      <!-- ==================== RESULT ==================== -->
+      {% if result %}
 
-  <div class="result">
+      <section class="card result-card" id="result-section">
 
-    <h3>
-      Domain: {{ r.domain }}
-    </h3>
+        <!-- Result header -->
+        <div class="result-header">
+          <span class="card-label">Response</span>
 
-    <p>
-      <strong>Distance:</strong>
-      {{ r.distance }}
-    </p>
+          {% set st = result.status | lower %}
+          {% if 'strongly' in st %}
+          <span class="badge-status green">✓ Strongly Grounded</span>
+          {% elif 'partial' in st %}
+          <span class="badge-status amber">~ Partially Grounded</span>
+          {% elif 'quota' in st %}
+          <span class="badge-status red">⚠ Quota Exhausted</span>
+          {% elif 'failed' in st %}
+          <span class="badge-status red">✗ Failed</span>
+          {% else %}
+          <span class="badge-status red">⚠ Possible Hallucination</span>
+          {% endif %}
+        </div>
 
-    <p>
-      {{ r.text }}
-    </p>
+        <!-- Answer -->
+        <div class="section">
+          <div class="section-title">Answer</div>
+          <p class="answer-text">{{ result.answer }}</p>
+        </div>
 
-  </div>
+        <hr class="divider" />
 
-  {% endfor %}
+        <!-- Score -->
+        <div class="section">
+          <div class="section-title">Grounding Score</div>
+          <div class="score-row">
+            <span class="score-num">{{ result.verification_score }}</span>
+            <div class="bar-wrap">
+              <div class="bar">
+                <div class="bar-fill" style="width: {{ [result.verification_score * 100, 100] | min | round | int }}%">
+                </div>
+              </div>
+              <div class="bar-label">{{ ([result.verification_score * 100, 100] | min | round | int) }}% confidence
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Status detail -->
+        <div class="section">
+          <div class="section-title">Status</div>
+          <p class="meta-text">{{ result.status }}</p>
+        </div>
+
+        <hr class="divider" />
+
+        <!-- Supporting context -->
+        <div class="section">
+          <div class="section-title">Supporting Context</div>
+          <div class="context-box">{{ result.supporting_context }}</div>
+        </div>
+
+      </section>
+
+      {% elif error %}
+
+      <section class="card">
+        <div class="card-label">Error</div>
+        <p class="error-text">{{ error }}</p>
+      </section>
+
+      {% else %}
+
+      <!-- Empty state -->
+      <div class="empty">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">Enter a medical question above</div>
+        <div class="empty-sub">Answers are generated from verified medical documents.</div>
+
+        <div class="prompt-grid">
+          <div class="prompt-tile" onclick="fillPrompt(this)">
+            <div class="prompt-tile-icon">🩺</div>
+            What are the symptoms of diabetes?
+          </div>
+          <div class="prompt-tile" onclick="fillPrompt(this)">
+            <div class="prompt-tile-icon">💊</div>
+            How is hypertension treated?
+          </div>
+          <div class="prompt-tile" onclick="fillPrompt(this)">
+            <div class="prompt-tile-icon">🫁</div>
+            What causes asthma?
+          </div>
+          <div class="prompt-tile" onclick="fillPrompt(this)">
+            <div class="prompt-tile-icon">🧠</div>
+            What are signs of a stroke?
+          </div>
+        </div>
+      </div>
+
+      {% endif %}
+
+    </div>
+  </main>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="container">
+      Medical RAG Assistant &mdash; For informational purposes only. Not a substitute for professional medical advice.
+    </div>
+  </footer>
+
+  <script>
+    function fillQuery(el) {
+      const inp = document.getElementById('query-input');
+      if (inp) { inp.value = el.textContent.trim(); inp.focus(); }
+    }
+
+    function fillPrompt(el) {
+      const inp = document.getElementById('query-input');
+      if (inp) {
+        inp.value = el.textContent.trim();
+        inp.focus();
+        document.getElementById('search-section').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    document.getElementById('query-form')?.addEventListener('submit', () => {
+      const btn = document.getElementById('submit-btn');
+      if (btn) { btn.textContent = 'Searching…'; btn.disabled = true; }
+    });
+
+    // Ctrl/Cmd + Enter submits
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter')
+        document.getElementById('query-form')?.requestSubmit();
+    });
+  </script>
 
 </body>
 

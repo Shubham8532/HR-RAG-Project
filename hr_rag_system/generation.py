@@ -1,8 +1,9 @@
-from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    pipeline
-)
+import os
+from pathlib import Path
+
+from openai import OpenAI
+
+from dotenv import load_dotenv
 
 from hr_rag_system.retrieval import (
     retrieve
@@ -12,46 +13,55 @@ from hr_rag_system.verification import (
     verify_answer
 )
 
+# =====================================================
+# LOAD ENV VARIABLES
+# =====================================================
 
-def load_llm():
-    """
-    Load TinyLlama generation model.
-    """
+_env_path = (
+    Path(__file__).resolve().parent.parent / ".env"
+)
 
-    model_name = (
-        "TinyLlama/TinyLlama-1.1B-Chat-v1.0"
+load_dotenv(dotenv_path=_env_path)
+
+api_key = os.getenv("GROQ_API_KEY")
+
+if not api_key:
+
+    raise EnvironmentError(
+        f"GROQ_API_KEY not found. "
+        f"Looked for .env at: {_env_path}"
     )
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name
-    )
+# =====================================================
+# GROQ CLIENT
+# =====================================================
 
-    model = AutoModelForCausalLM.from_pretrained(
-        model_name,
-        device_map="auto"
-    )
+client = OpenAI(
 
-    generator = pipeline(
-        "text-generation",
-        model=model,
-        tokenizer=tokenizer
-    )
+    api_key=api_key,
 
-    return generator, tokenizer
+    base_url="https://api.groq.com/openai/v1"
+)
 
+# =====================================================
+# GENERATE ANSWER
+# =====================================================
 
 def generate_answer(
     query,
     embedding_model,
     reranker,
     index,
-    chunked_corpus,
-    generator,
-    tokenizer
+    chunked_corpus
 ):
     """
-    Generate grounded RAG answer.
+    Generate grounded RAG answer
+    using Groq API.
     """
+
+    # =================================================
+    # RETRIEVE DOCUMENTS
+    # =================================================
 
     retrieved_docs = retrieve(
 
@@ -66,12 +76,20 @@ def generate_answer(
         chunked_corpus=chunked_corpus
     )
 
+    # =================================================
+    # BUILD CONTEXT
+    # =================================================
+
     context = "\n\n".join([
 
         doc["text"]
 
         for doc in retrieved_docs
     ])
+
+    # =================================================
+    # BUILD PROMPT
+    # =================================================
 
     prompt = f"""
 You are a medical question answering assistant.
@@ -83,7 +101,9 @@ say:
 
 "Not enough information available."
 
-Give a concise answer in 2-3 sentences only.
+Give a concise answer in 2-3 complete sentences only.
+
+Do not leave incomplete sentences.
 
 Context:
 {context}
@@ -94,24 +114,80 @@ Question:
 Answer:
 """
 
-    response = generator(
+    # =================================================
+    # GROQ GENERATION
+    # =================================================
 
-        prompt,
+    try:
 
-        max_new_tokens=50,
+        response = client.chat.completions.create(
 
-        do_sample=False,
+            model="llama-3.1-8b-instant",
 
-        return_full_text=False,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
 
-        eos_token_id=tokenizer.eos_token_id
-    )
+            temperature=0,
 
-    answer = response[0]["generated_text"]
+            max_tokens=120
+        )
+
+        answer = (
+
+            response
+            .choices[0]
+            .message
+            .content
+            .strip()
+        )
+
+    except Exception as e:
+
+        return {
+
+            "answer":
+            f"LLM generation failed:\n\n{str(e)}",
+
+            "verification_score": 0.0,
+
+            "status": "Generation Failed",
+
+            "supporting_context":
+            retrieved_docs[0]["text"]
+        }
+
+    # =================================================
+    # EMPTY ANSWER SAFETY
+    # =================================================
+
+    if not answer:
+
+        return {
+
+            "answer": "No response generated.",
+
+            "verification_score": 0.0,
+
+            "status": "Generation Failed",
+
+            "supporting_context":
+            retrieved_docs[0]["text"]
+        }
+
+    # =================================================
+    # VERIFY ANSWER
+    # =================================================
 
     verification_score = verify_answer(
+
         answer,
+
         context,
+
         embedding_model
     )
 
@@ -127,6 +203,10 @@ Answer:
 
         status = "Possible hallucination"
 
+    # =================================================
+    # RETURN RESULT
+    # =================================================
+
     return {
 
         "answer": answer,
@@ -138,5 +218,6 @@ Answer:
 
         "status": status,
 
-        "supporting_context": retrieved_docs[0]["text"]
+        "supporting_context":
+        retrieved_docs[0]["text"]
     }

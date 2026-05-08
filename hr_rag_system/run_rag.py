@@ -10,12 +10,21 @@ from hr_rag_system.retrieval import (
 )
 
 from hr_rag_system.generation import (
-    load_llm,
     generate_answer
 )
 
+# =====================================================
+# MAIN RAG PIPELINE
+# =====================================================
 
 def main():
+    """
+    Run end-to-end RAG pipeline.
+    """
+
+    # =================================================
+    # LOAD ARTIFACTS + MODELS
+    # =================================================
 
     chunked_corpus = load_chunked_corpus()
 
@@ -25,12 +34,17 @@ def main():
 
     reranker = load_reranker()
 
-    generator, tokenizer = load_llm()
+    # =================================================
+    # TEST QUERY
+    # =================================================
 
-    # Testing locally
     query = (
-        "What are symptoms of diabetes?"   
+        "What are symptoms of diabetes?"
     )
+
+    # =================================================
+    # GENERATE ANSWER
+    # =================================================
 
     result = generate_answer(
 
@@ -42,12 +56,12 @@ def main():
 
         index=index,
 
-        chunked_corpus=chunked_corpus,
-
-        generator=generator,
-
-        tokenizer=tokenizer
+        chunked_corpus=chunked_corpus
     )
+
+    # =================================================
+    # OUTPUT
+    # =================================================
 
     print("\n========== ANSWER ==========\n")
 
@@ -71,6 +85,10 @@ def main():
         result["supporting_context"][:1000]
     )
 
+
+# =====================================================
+# RUN
+# =====================================================
 
 if __name__ == "__main__":
 
