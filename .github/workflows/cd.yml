@@ -34,6 +34,18 @@ jobs:
             -u ${{ secrets.ACR_USERNAME }} \
             -p ${{ secrets.ACR_PASSWORD }}
 
+            # Install DVC
+      - name: Install DVC
+        run: |
+          pip install dvc dvc-azure
+
+      # Pull DVC data
+      - name: Pull DVC data
+        run: |
+          dvc pull
+        env:
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+
       # Build Docker Image
       - name: Build Docker image
         run: |
