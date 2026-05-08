@@ -34,7 +34,7 @@ jobs:
         run: |
           dvc pull
         env:
-          AZURE_STORAGE_CONNECTION_STRING: ${{ AZURE_STORAGE_CONNECTION_STRING }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
 
       - name: Build Docker image
         run: |
