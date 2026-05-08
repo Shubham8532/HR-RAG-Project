@@ -1,3 +1,6 @@
+# virtual environment
+env_hr/
+
 # Data
 # Ignore large data files only
 data/raw/*.json
