@@ -1,0 +1,44 @@
+name: CD Pipeline
+
+on :
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
+  
+  jobs:
+    deploy:
+    runs-on: ubuntu-latest
+
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps::
+    # Checkout
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+  # Login to Azure
+    - name: Azure Login
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+  # Login to Azure Container Registry
+    - name: Azure Container Registry Login
+      run: az acr login --name hrrag.azurecr.io
+
+  # Build Docker Image
+    - name: Build Docker image
+      run: |
+        docker build -t hrrag.azurecr.io/hr-rag-app:${{ github.sha }} .
+
+  # Push Docker Image to Azure Container Registry
+    - name: Push Docker image to Azure Container Registry
+      run: |
+        docker push hrrag.azurecr.io/hr-rag-app:${{ github.sha }}
+
+  # Deploy to Azure Web App
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: hr-rag
+        images: hr-rag.azurecr.io/hr-rag-app:${{ github.sha }}
