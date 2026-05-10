@@ -6,6 +6,17 @@
 
 Hallucination-Resistant Retrieval-Augmented Generation (HR-RAG) system with self-verification, cross-encoder scoring, and confidence-aware responses.
 
+## Demo Preview
+
+### Medical Query Interface
+![Medical RAG Interface](assets/hr-rag-home.png)
+
+### Grounded Medical Response
+![Grounded Medical Response](assets/hr-rag-response.png)
+
+### Supporting Context Retrieval
+![Supporting Context](assets/hr-rag-context.png)
+
 ## Project Organization
 
 ```
