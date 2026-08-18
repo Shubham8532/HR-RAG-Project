@@ -121,21 +121,19 @@ Answer:
     try:
 
         response = client.chat.completions.create(
+        model="openai/gpt-oss-20b",
 
-            model="llama-3.1-8b-instant",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
 
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
+        reasoning_effort="low",
 
-            temperature=0,
-
-            max_tokens=120
+        max_completion_tokens=300
         )
-
         answer = (
 
             response
