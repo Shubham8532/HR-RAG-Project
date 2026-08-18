@@ -1,17 +1,13 @@
 import os
+import time
 from pathlib import Path
 
-from openai import OpenAI
-
+from groq import Groq
 from dotenv import load_dotenv
 
-from hr_rag_system.retrieval import (
-    retrieve
-)
+from hr_rag_system.retrieval import retrieve
+from hr_rag_system.verification import verify_answer
 
-from hr_rag_system.verification import (
-    verify_answer
-)
 
 # =====================================================
 # LOAD ENV VARIABLES
@@ -26,22 +22,20 @@ load_dotenv(dotenv_path=_env_path)
 api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
-
     raise EnvironmentError(
         f"GROQ_API_KEY not found. "
         f"Looked for .env at: {_env_path}"
     )
 
+
 # =====================================================
 # GROQ CLIENT
 # =====================================================
 
-client = OpenAI(
-
-    api_key=api_key,
-
-    base_url="https://api.groq.com/openai/v1"
+client = Groq(
+    api_key=api_key
 )
+
 
 # =====================================================
 # GENERATE ANSWER
@@ -63,29 +57,51 @@ def generate_answer(
     # RETRIEVE DOCUMENTS
     # =================================================
 
+    print("\n[1/5] Retrieving documents...")
+
+    start_time = time.time()
+
     retrieved_docs = retrieve(
-
         query=query,
-
         embedding_model=embedding_model,
-
         reranker=reranker,
-
         index=index,
-
         chunked_corpus=chunked_corpus
     )
+
+    print(
+        f"[1/5] Retrieval completed in "
+        f"{time.time() - start_time:.2f}s"
+    )
+
+    # =================================================
+    # SAFETY CHECK
+    # =================================================
+
+    if not retrieved_docs:
+
+        return {
+            "answer": "Not enough information available.",
+            "verification_score": 0.0,
+            "status": "No relevant context",
+            "supporting_context": "No supporting context found."
+        }
 
     # =================================================
     # BUILD CONTEXT
     # =================================================
 
-    context = "\n\n".join([
+    print("[2/5] Building context...")
 
+    context = "\n\n".join(
         doc["text"]
-
         for doc in retrieved_docs
-    ])
+    )
+
+    print(
+        f"[2/5] Context length: "
+        f"{len(context)} characters"
+    )
 
     # =================================================
     # BUILD PROMPT
@@ -120,30 +136,47 @@ Answer:
 
     try:
 
+        print("[3/5] Calling Groq LLM...")
+
+        start_time = time.time()
+
         response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
 
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
+            model="openai/gpt-oss-20b",
 
-        reasoning_effort="low",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
 
-        max_completion_tokens=300
+            max_completion_tokens=300
         )
-        answer = (
 
-            response
-            .choices[0]
-            .message
-            .content
-            .strip()
+        print(
+            f"[3/5] LLM completed in "
+            f"{time.time() - start_time:.2f}s"
+        )
+
+        # =================================================
+        # EXTRACT ANSWER
+        # =================================================
+
+        message = response.choices[0].message
+
+        answer = (message.content or "").strip()
+
+        print(
+            f"[3/5] Answer length: "
+            f"{len(answer)} characters"
         )
 
     except Exception as e:
+
+        print(
+            f"[3/5] LLM ERROR: {str(e)}"
+        )
 
         return {
 
@@ -164,6 +197,8 @@ Answer:
 
     if not answer:
 
+        print("[3/5] LLM returned an empty answer.")
+
         return {
 
             "answer": "No response generated.",
@@ -176,18 +211,50 @@ Answer:
             retrieved_docs[0]["text"]
         }
 
+    print("[4/5] Answer generated successfully.")
+
     # =================================================
     # VERIFY ANSWER
     # =================================================
 
-    verification_score = verify_answer(
+    try:
 
-        answer,
+        print("[5/5] Verifying answer...")
 
-        context,
+        start_time = time.time()
 
-        embedding_model
-    )
+        verification_score = verify_answer(
+            answer,
+            context,
+            embedding_model
+        )
+
+        print(
+            f"[5/5] Verification completed in "
+            f"{time.time() - start_time:.2f}s"
+        )
+
+    except Exception as e:
+
+        print(
+            f"[5/5] Verification ERROR: {str(e)}"
+        )
+
+        return {
+
+            "answer": answer,
+
+            "verification_score": 0.0,
+
+            "status": "Verification Failed",
+
+            "supporting_context":
+            retrieved_docs[0]["text"]
+        }
+
+    # =================================================
+    # DETERMINE STATUS
+    # =================================================
 
     if verification_score >= 0.80:
 

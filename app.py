@@ -15,24 +15,27 @@ from hr_rag_system.generation import (
     generate_answer
 )
 
+
 # =====================================================
 # LOAD MODELS + ARTIFACTS ONCE AT STARTUP
 # =====================================================
 
 print("Loading RAG system...")
 
-chunked_corpus    = load_chunked_corpus()
-index             = load_faiss_index()
-embedding_model   = load_embedding_model()
-reranker          = load_reranker()
+chunked_corpus = load_chunked_corpus()
+index = load_faiss_index()
+embedding_model = load_embedding_model()
+reranker = load_reranker()
 
 print("RAG system ready.")
+
 
 # =====================================================
 # FLASK APP
 # =====================================================
 
 app = Flask(__name__)
+
 
 # =====================================================
 # HOME PAGE
@@ -42,36 +45,73 @@ app = Flask(__name__)
 def home():
 
     result = None
-    error  = None
+    error = None
 
     if request.method == "POST":
-        query = request.form.get("query", "").strip()
+
+        query = request.form.get(
+            "query",
+            ""
+        ).strip()
 
         if query:
+
+            print(
+                f"\n========== NEW QUERY =========="
+            )
+
+            print(
+                f"Query: {query}"
+            )
+
             try:
+
                 result = generate_answer(
-                    query           = query,
-                    embedding_model = embedding_model,
-                    reranker        = reranker,
-                    index           = index,
-                    chunked_corpus  = chunked_corpus
+
+                    query=query,
+
+                    embedding_model=embedding_model,
+
+                    reranker=reranker,
+
+                    index=index,
+
+                    chunked_corpus=chunked_corpus
                 )
+
+                print(
+                    "========== QUERY COMPLETE ==========\n"
+                )
+
             except Exception as exc:
+
+                print(
+                    f"APPLICATION ERROR: {exc}"
+                )
+
                 error = str(exc)
 
     return render_template(
+
         "index.html",
-        result = result,
-        error  = error
+
+        result=result,
+
+        error=error
     )
+
 
 # =====================================================
 # RUN APP
 # =====================================================
 
 if __name__ == "__main__":
+
     app.run(
-        host  = "0.0.0.0",
-        port  = 5000,
-        debug = False
+
+        host="0.0.0.0",
+
+        port=5000,
+
+        debug=False
     )
